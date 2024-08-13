@@ -16,7 +16,7 @@ import {
   Button,
   HStack,
 } from "@chakra-ui/react";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { SingleDatepicker } from "chakra-dayzed-datepicker";
 import TagInput from "../../components/tagInput";
 
@@ -25,6 +25,10 @@ export default function Home() {
 
   const [startDate, setStartDate] = useState(new Date());
   const [endDate, setEndDate] = useState(new Date());
+
+  useEffect(() => {
+    localStorage.setItem("chakra-ui-color-mode", "dark");
+  });
 
   return (
     <Center w="100vw" h="100vh" bg="gray.900">
