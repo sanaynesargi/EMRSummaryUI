@@ -1,95 +1,138 @@
-import Image from "next/image";
-import styles from "./page.module.css";
+"use client";
+
+import {
+  Box,
+  Card,
+  CardBody,
+  CardHeader,
+  Center,
+  Grid,
+  GridItem,
+  Heading,
+  Stack,
+  StackDivider,
+  VStack,
+  Text,
+  Button,
+  HStack,
+} from "@chakra-ui/react";
+import { useState } from "react";
+import { SingleDatepicker } from "chakra-dayzed-datepicker";
+import TagInput from "../../components/tagInput";
 
 export default function Home() {
+  const [selectedIndividual, setSelectedIndividual] = useState("");
+
+  const [startDate, setStartDate] = useState(new Date());
+  const [endDate, setEndDate] = useState(new Date());
+
   return (
-    <main className={styles.main}>
-      <div className={styles.description}>
-        <p>
-          Get started by editing&nbsp;
-          <code className={styles.code}>src/app/page.tsx</code>
-        </p>
-        <div>
-          <a
-            href="https://vercel.com?utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            By{" "}
-            <Image
-              src="/vercel.svg"
-              alt="Vercel Logo"
-              className={styles.vercelLogo}
-              width={100}
-              height={24}
-              priority
-            />
-          </a>
-        </div>
-      </div>
-
-      <div className={styles.center}>
-        <Image
-          className={styles.logo}
-          src="/next.svg"
-          alt="Next.js Logo"
-          width={180}
-          height={37}
-          priority
-        />
-      </div>
-
-      <div className={styles.grid}>
-        <a
-          href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-          className={styles.card}
-          target="_blank"
-          rel="noopener noreferrer"
+    <Center w="100vw" h="100vh" bg="gray.900">
+      <Grid
+        h="95%"
+        w="97%"
+        templateRows="repeat(6, 1fr)"
+        templateColumns="repeat(8, 1fr)"
+        gap={6}
+      >
+        <GridItem
+          rowSpan={1}
+          colSpan={2}
+          bg="gray.600"
+          borderRadius="lg"
+          gridRowStart="1"
+          gridColumnStart="1"
         >
-          <h2>
-            Docs <span>-&gt;</span>
-          </h2>
-          <p>Find in-depth information about Next.js features and API.</p>
-        </a>
-
-        <a
-          href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-          className={styles.card}
-          target="_blank"
-          rel="noopener noreferrer"
+          <Center>
+            <VStack>
+              <HStack>
+                <SingleDatepicker
+                  name="date-input"
+                  date={startDate}
+                  onDateChange={setStartDate}
+                />
+                <Text>to</Text>
+                <SingleDatepicker
+                  name="date-input"
+                  date={endDate}
+                  onDateChange={setEndDate}
+                />
+              </HStack>
+              <TagInput />
+            </VStack>
+          </Center>
+        </GridItem>
+        <GridItem
+          rowSpan={5}
+          colSpan={2}
+          bg="gray.700"
+          borderRadius="lg"
+          gridRowStart="2"
+          overflow="auto"
         >
-          <h2>
-            Learn <span>-&gt;</span>
-          </h2>
-          <p>Learn about Next.js in an interactive course with&nbsp;quizzes!</p>
-        </a>
+          <VStack w="100%">
+            {Array(20)
+              .fill(0)
+              .map((pNum, idx) => {
+                const displayStr = `Person #${idx + 1}`;
 
-        <a
-          href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-          className={styles.card}
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <h2>
-            Templates <span>-&gt;</span>
-          </h2>
-          <p>Explore starter templates for Next.js.</p>
-        </a>
+                return (
+                  <Button
+                    w="100%"
+                    bg={
+                      selectedIndividual == displayStr ? "#4E5766" : "#119DA4"
+                    }
+                    onClick={() => setSelectedIndividual(displayStr)}
+                  >
+                    <Text fontWeight="bold">{displayStr}</Text>
+                  </Button>
+                );
+              })}
+          </VStack>
+        </GridItem>
+        <GridItem rowSpan={5} colSpan={6} bg="gray.700" borderRadius="lg">
+          <Card border="transparent">
+            <CardHeader>
+              <Heading size="md">Client Report - {selectedIndividual}</Heading>
+            </CardHeader>
 
-        <a
-          href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-          className={styles.card}
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <h2>
-            Deploy <span>-&gt;</span>
-          </h2>
-          <p>
-            Instantly deploy your Next.js site to a shareable URL with Vercel.
-          </p>
-        </a>
-      </div>
-    </main>
+            <CardBody>
+              <Stack divider={<StackDivider />} spacing="4">
+                <Box>
+                  <Heading size="xs" textTransform="uppercase">
+                    Summary
+                  </Heading>
+                  <Text pt="2" fontSize="sm">
+                    View a summary of all your clients over the last month.
+                  </Text>
+                </Box>
+                <Box>
+                  <Heading size="xs" textTransform="uppercase">
+                    Status Updates
+                  </Heading>
+                  <Text pt="2" fontSize="sm">
+                    Check out the day-to-day status of your clients.
+                  </Text>
+                </Box>
+                <Box>
+                  <Heading size="xs" textTransform="uppercase">
+                    Anomalies
+                  </Heading>
+                  <Text pt="2" fontSize="sm">
+                    See a detailed view of all anomalies found.
+                  </Text>
+                </Box>
+              </Stack>
+            </CardBody>
+          </Card>
+        </GridItem>
+        <GridItem
+          rowSpan={1}
+          colSpan={6}
+          bg="gray.700"
+          borderRadius="lg"
+        ></GridItem>
+      </Grid>
+    </Center>
   );
 }
