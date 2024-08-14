@@ -13,13 +13,15 @@
     "@chakra-ui/react": "^2.8.2",
     "@emotion/react": "^11.13.0",
     "@emotion/styled": "^11.13.0",
+    "@vercel/postgres": "^0.9.0",
     "chakra-dayzed-datepicker": "^0.3.0",
     "date-fns": "^3.6.0",
     "dayzed": "^3.2.3",
     "framer-motion": "^11.3.24",
     "next": "14.2.5",
     "react": "^18",
-    "react-dom": "^18"
+    "react-dom": "^18",
+    "vercel": "^35.2.4"
   },
   "devDependencies": {
     "@types/node": "^20",
