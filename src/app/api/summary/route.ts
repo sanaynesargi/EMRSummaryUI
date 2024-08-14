@@ -1,15 +1,28 @@
 import { GetObjectCommand, S3Client } from "@aws-sdk/client-s3";
 import mammoth from "mammoth";
 import { NextResponse, type NextRequest } from "next/server";
+import { db } from "../../../orm/database";
 
 export async function GET(req: NextRequest) {
   const searchParams = req.nextUrl.searchParams;
+  const clientId = searchParams.get("clientId");
 
-  if (!searchParams.get("key")) {
+  if (!clientId) {
     return NextResponse.json(
       { error: "Invalid Request Body" },
       { status: 400 }
     );
+  }
+
+  // make sure client id exists
+  const s3Key = await db
+    .selectFrom("record_store")
+    .select("record_store.s3_url")
+    .where("record_store.person_id", "=", parseInt(clientId))
+    .executeTakeFirst();
+
+  if (!s3Key) {
+    return NextResponse.json({ error: "Invalid Client Id" }, { status: 400 });
   }
 
   const s3Client = new S3Client({
@@ -22,7 +35,7 @@ export async function GET(req: NextRequest) {
 
   const command = new GetObjectCommand({
     Bucket: "patientdatablobs",
-    Key: searchParams.get("key"),
+    Key: s3Key.s3_url,
   });
 
   try {
@@ -44,7 +57,7 @@ export async function GET(req: NextRequest) {
     const result = await mammoth.extractRawText({ buffer });
     const text = result.value;
 
-    return Response.json(text);
+    return Response.json({ data: text });
   } catch (error) {
     return Response.json({ error });
   }

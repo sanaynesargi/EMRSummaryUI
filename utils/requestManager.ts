@@ -75,8 +75,13 @@ const postAPIData = async (url: string, body: any) => {
 
 // API Endpoints
 const clientsEndpoint = `${API_BASE_URL}/patients`;
+const summaryEndpoint = `${API_BASE_URL}/summary`;
 
 // API Request Calls -> React Query
 export const fetchClients = async () => {
   return await getAPIData(clientsEndpoint, {});
+};
+
+export const fetchSummary = async (clientId: string) => {
+  return await getAPIData(summaryEndpoint, { clientId });
 };

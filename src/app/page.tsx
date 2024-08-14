@@ -22,7 +22,7 @@ import { useEffect, useState } from "react";
 import { SingleDatepicker } from "chakra-dayzed-datepicker";
 import TagInput from "../../components/tagInput";
 import { useQuery } from "react-query";
-import { fetchClients } from "../../utils/requestManager";
+import { fetchClients, fetchSummary } from "../../utils/requestManager";
 
 interface Person {
   first_name: string;
@@ -36,13 +36,14 @@ export default function Home() {
   const [startDate, setStartDate] = useState(new Date());
   const [endDate, setEndDate] = useState(new Date());
 
+  const [summary, setSummary] = useState("");
+  const [isSummaryLoading, setIsSummaryLoading] = useState(true);
+
   useEffect(() => {
     localStorage.setItem("chakra-ui-color-mode", "dark");
   });
 
   const { data, status } = useQuery("clients", fetchClients);
-
-  useEffect(() => console.log(data, status), [data]);
 
   return (
     <Center w="100vw" h="100vh" bg="gray.900">
@@ -90,7 +91,7 @@ export default function Home() {
         >
           {status == "success" ? (
             <VStack w="100%">
-              {data.data.map((person: Person, idx) => {
+              {data.data.map((person: Person, idx: number) => {
                 const displayStr = `${person.first_name} ${person.last_name}`;
                 return (
                   <Button
@@ -99,8 +100,19 @@ export default function Home() {
                     bg={
                       selectedIndividual == displayStr ? "#4E5766" : "#119DA4"
                     }
-                    onClick={() => {
+                    onClick={async () => {
                       setSelectedIndividual(displayStr);
+
+                      const summaryResponse = await fetchSummary(person.id);
+                      setIsSummaryLoading(true);
+
+                      if (summaryResponse.error) {
+                        // put a toast or something -> handle the error
+                        return;
+                      }
+
+                      setSummary(summaryResponse.data);
+                      setIsSummaryLoading(false);
                     }}
                   >
                     <Text fontWeight="bold">{displayStr}</Text>
@@ -122,15 +134,23 @@ export default function Home() {
 
             <CardBody>
               <Stack divider={<StackDivider />} spacing="4">
-                <Box>
-                  <Heading size="xs" textTransform="uppercase">
-                    Summary
-                  </Heading>
-                  <Text pt="2" fontSize="sm">
-                    View a summary of all your clients over the last month.
-                  </Text>
-                </Box>
-                <Box>
+                {summary.length == 0 ? (
+                  <></>
+                ) : !isSummaryLoading ? (
+                  <Box>
+                    <Heading size="xs" textTransform="uppercase">
+                      Summary
+                    </Heading>
+                    <Text pt="2" fontSize="sm">
+                      {summary}
+                    </Text>
+                  </Box>
+                ) : (
+                  <Center>
+                    <Spinner />
+                  </Center>
+                )}
+                {/* <Box>
                   <Heading size="xs" textTransform="uppercase">
                     Status Updates
                   </Heading>
@@ -145,7 +165,7 @@ export default function Home() {
                   <Text pt="2" fontSize="sm">
                     See a detailed view of all anomalies found.
                   </Text>
-                </Box>
+                </Box> */}
               </Stack>
             </CardBody>
           </Card>
