@@ -15,10 +15,20 @@ import {
   Text,
   Button,
   HStack,
+  Skeleton,
+  Spinner,
 } from "@chakra-ui/react";
 import { useEffect, useState } from "react";
 import { SingleDatepicker } from "chakra-dayzed-datepicker";
 import TagInput from "../../components/tagInput";
+import { useQuery } from "react-query";
+import { fetchClients } from "../../utils/requestManager";
+
+interface Person {
+  first_name: string;
+  last_name: string;
+  id: string;
+}
 
 export default function Home() {
   const [selectedIndividual, setSelectedIndividual] = useState("");
@@ -29,6 +39,10 @@ export default function Home() {
   useEffect(() => {
     localStorage.setItem("chakra-ui-color-mode", "dark");
   });
+
+  const { data, status } = useQuery("clients", fetchClients);
+
+  useEffect(() => console.log(data, status), [data]);
 
   return (
     <Center w="100vw" h="100vh" bg="gray.900">
@@ -74,25 +88,31 @@ export default function Home() {
           gridRowStart="2"
           overflow="auto"
         >
-          <VStack w="100%">
-            {Array(20)
-              .fill(0)
-              .map((pNum, idx) => {
-                const displayStr = `Person #${idx + 1}`;
-
+          {status == "success" ? (
+            <VStack w="100%">
+              {data.data.map((person: Person, idx) => {
+                const displayStr = `${person.first_name} ${person.last_name}`;
                 return (
                   <Button
                     w="100%"
+                    key={idx}
                     bg={
                       selectedIndividual == displayStr ? "#4E5766" : "#119DA4"
                     }
-                    onClick={() => setSelectedIndividual(displayStr)}
+                    onClick={() => {
+                      setSelectedIndividual(displayStr);
+                    }}
                   >
                     <Text fontWeight="bold">{displayStr}</Text>
                   </Button>
                 );
               })}
-          </VStack>
+            </VStack>
+          ) : status == "loading" ? (
+            <Center h="100%">
+              <Spinner />
+            </Center>
+          ) : null}
         </GridItem>
         <GridItem rowSpan={5} colSpan={6} bg="gray.700" borderRadius="lg">
           <Card border="transparent">

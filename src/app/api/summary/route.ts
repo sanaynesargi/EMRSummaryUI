@@ -1,12 +1,15 @@
 import { GetObjectCommand, S3Client } from "@aws-sdk/client-s3";
 import mammoth from "mammoth";
-import { type NextRequest } from "next/server";
+import { NextResponse, type NextRequest } from "next/server";
 
 export async function GET(req: NextRequest) {
   const searchParams = req.nextUrl.searchParams;
 
   if (!searchParams.get("key")) {
-    return Response.json({ error: "Invalid Request Body" });
+    return NextResponse.json(
+      { error: "Invalid Request Body" },
+      { status: 400 }
+    );
   }
 
   const s3Client = new S3Client({
@@ -29,7 +32,7 @@ export async function GET(req: NextRequest) {
     const streamToBuffer = async (stream: any) => {
       return new Promise((resolve, reject) => {
         const chunks = [];
-        stream.on("data", (chunk) => chunks.push(chunk));
+        stream.on("data", (chunk: any) => chunks.push(chunk));
         stream.on("end", () => resolve(Buffer.concat(chunks)));
         stream.on("error", reject);
       });
