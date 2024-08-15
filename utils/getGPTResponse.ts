@@ -8,5 +8,5 @@ export const getGPTResponse = async (systemMessage: string) => {
     messages: [{ role: "system", content: systemMessage }],
   });
 
-  return completion.choices[0].message;
+  return completion.choices[0].message.content;
 };
