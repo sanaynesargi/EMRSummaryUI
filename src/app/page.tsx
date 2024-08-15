@@ -23,6 +23,8 @@ import { SingleDatepicker } from "chakra-dayzed-datepicker";
 import TagInput from "../../components/tagInput";
 import { useQuery } from "react-query";
 import { fetchClients, fetchSummary } from "../../utils/requestManager";
+import ChakraUIRenderer from "chakra-ui-markdown-renderer";
+import ReactMarkdown from "react-markdown";
 
 interface Person {
   first_name: string;
@@ -134,22 +136,24 @@ export default function Home() {
 
             <CardBody>
               <Stack divider={<StackDivider />} spacing="4">
-                {summary.length == 0 ? (
-                  <></>
+                {summary != "" && isSummaryLoading ? (
+                  <Center>
+                    <Spinner />
+                  </Center>
                 ) : !isSummaryLoading ? (
                   <Box>
                     <Heading size="xs" textTransform="uppercase">
                       Summary
                     </Heading>
                     <Text pt="2" fontSize="sm">
-                      {summary}
+                      <ReactMarkdown
+                        components={ChakraUIRenderer()}
+                        children={summary}
+                        skipHtml
+                      />
                     </Text>
                   </Box>
-                ) : (
-                  <Center>
-                    <Spinner />
-                  </Center>
-                )}
+                ) : null}
                 {/* <Box>
                   <Heading size="xs" textTransform="uppercase">
                     Status Updates

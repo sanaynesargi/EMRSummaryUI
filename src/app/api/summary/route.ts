@@ -2,6 +2,14 @@ import { GetObjectCommand, S3Client } from "@aws-sdk/client-s3";
 import mammoth from "mammoth";
 import { NextResponse, type NextRequest } from "next/server";
 import { db } from "../../../orm/database";
+import { getGPTResponse } from "../../../../utils/getGPTResponse";
+import { SUMMARY_PROMPT } from "../../../../utils/workingPrompt";
+
+const getPatientSummaryReport = async (patientDataBlob: string) => {
+  const userMessage = `Your document is ${patientDataBlob}.`;
+
+  return await getGPTResponse(SUMMARY_PROMPT + " " + userMessage);
+};
 
 export async function GET(req: NextRequest) {
   const searchParams = req.nextUrl.searchParams;
@@ -57,8 +65,11 @@ export async function GET(req: NextRequest) {
     const result = await mammoth.extractRawText({ buffer });
     const text = result.value;
 
-    return Response.json({ data: text });
+    const summary = await getPatientSummaryReport(text);
+
+    return Response.json({ data: summary.content });
   } catch (error) {
+    console.log(error);
     return Response.json({ error });
   }
 }
