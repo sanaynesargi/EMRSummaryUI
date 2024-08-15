@@ -17,14 +17,15 @@ import {
   HStack,
   Skeleton,
   Spinner,
+  useToast,
 } from "@chakra-ui/react";
 import { useEffect, useState } from "react";
 import { SingleDatepicker } from "chakra-dayzed-datepicker";
-import TagInput from "../../components/tagInput";
 import { useQuery } from "react-query";
 import { fetchClients, fetchSummary } from "../../utils/requestManager";
 import ChakraUIRenderer from "chakra-ui-markdown-renderer";
 import ReactMarkdown from "react-markdown";
+import TagInput from "../components/tagInput";
 
 interface Person {
   first_name: string;
@@ -32,13 +33,40 @@ interface Person {
   id: string;
 }
 
+const constructMarkdownString = (
+  filters: string[],
+  sections: { [key: string]: string }
+): string => {
+  console.log(filters);
+  let markdown = "";
+  let selectedFilters = filters;
+
+  // If no filters are selected, use all section keys
+  if (selectedFilters.length === 0) {
+    selectedFilters = Object.keys(sections);
+  }
+
+  // Iterate over each section in the order of selected filters
+  selectedFilters.forEach((section) => {
+    if (sections.hasOwnProperty(section)) {
+      console.log(section);
+      // Add heading with the correct format
+      markdown += `**${section}**:\n\n`;
+      // Add the content of the section
+      markdown += sections[section] + "\n\n";
+    }
+  });
+  // Trim any trailing whitespace from the final markdown string
+  return markdown;
+};
+
 export default function Home() {
   const [selectedIndividual, setSelectedIndividual] = useState("");
 
   const [startDate, setStartDate] = useState(new Date());
   const [endDate, setEndDate] = useState(new Date());
 
-  const [summary, setSummary] = useState("");
+  const [summary, setSummary] = useState({});
   const [isSummaryLoading, setIsSummaryLoading] = useState(true);
 
   useEffect(() => {
@@ -46,6 +74,24 @@ export default function Home() {
   });
 
   const { data, status } = useQuery("clients", fetchClients);
+  const [isFirstSummaryLoaded, setIsFirstSummaryLoaded] = useState(false);
+  const [filteredTags, setFilteredTags] = useState([]);
+  const [allTags, setAllTags] = useState([]);
+  const [mdString, setMdString] = useState("");
+
+  const toast = useToast();
+
+  const onFilterChange = (newFilters: any) => {
+    let selected = [];
+
+    for (const tag of allTags) {
+      if (!newFilters.includes(tag)) {
+        selected.push(tag);
+      }
+    }
+
+    setMdString(constructMarkdownString(selected, summary));
+  };
 
   return (
     <Center w="100vw" h="100vh" bg="gray.900">
@@ -79,7 +125,11 @@ export default function Home() {
                   onDateChange={setEndDate}
                 />
               </HStack>
-              <TagInput />
+              <TagInput
+                filteredTags={filteredTags}
+                setFilteredTags={setFilteredTags}
+                onChange={onFilterChange}
+              />
             </VStack>
           </Center>
         </GridItem>
@@ -104,16 +154,37 @@ export default function Home() {
                     }
                     onClick={async () => {
                       setSelectedIndividual(displayStr);
+                      setIsFirstSummaryLoaded(true);
 
                       const summaryResponse = await fetchSummary(person.id);
                       setIsSummaryLoading(true);
 
                       if (summaryResponse.error) {
                         // put a toast or something -> handle the error
+                        toast({
+                          title: "Something went wrong..",
+                          description:
+                            "We've had an error contacting the server.",
+                          status: "error",
+                          duration: 3000,
+                          isClosable: true,
+                        });
+                        setIsFirstSummaryLoaded(false);
+                        setIsSummaryLoading(false);
+                        setSummary("");
+                        setFilteredTags([]);
                         return;
                       }
 
                       setSummary(summaryResponse.data);
+                      setFilteredTags(Object.keys(summaryResponse.data));
+                      setAllTags(Object.keys(summaryResponse.data));
+                      setMdString(
+                        constructMarkdownString(
+                          Object.keys(summaryResponse.data),
+                          summaryResponse.data
+                        )
+                      );
                       setIsSummaryLoading(false);
                     }}
                   >
@@ -141,7 +212,7 @@ export default function Home() {
             </CardHeader>
             <CardBody>
               <Stack divider={<StackDivider />} spacing="4">
-                {summary != "" && isSummaryLoading ? (
+                {isSummaryLoading && isFirstSummaryLoaded ? (
                   <Center>
                     <Spinner />
                   </Center>
@@ -153,7 +224,7 @@ export default function Home() {
                     <Text pt="2" fontSize="sm">
                       <ReactMarkdown
                         components={ChakraUIRenderer()}
-                        children={summary}
+                        children={mdString}
                         skipHtml
                       />
                     </Text>

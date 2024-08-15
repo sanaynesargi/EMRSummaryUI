@@ -21,22 +21,19 @@ import {
   HStack,
 } from "@chakra-ui/react";
 
-const TagInput = () => {
-  const allTags = [
-    "Filter #1",
-    "Filter #2",
-    "Filter #3",
-    "Filter #4",
-    "Filter #5",
-    "Filter #6",
-    "Filter #7",
-    "Filter #8",
-    "Filter #9",
-  ];
+interface TagInputProps {
+  filteredTags: any[];
+  setFilteredTags: Function;
+  onChange: Function;
+}
 
+const TagInput = ({
+  filteredTags,
+  setFilteredTags,
+  onChange,
+}: TagInputProps) => {
   const [tags, setTags] = useState([]);
   const [inputValue, setInputValue] = useState("");
-  const [filteredTags, setFilteredTags] = useState(allTags);
   const { isOpen, onOpen, onClose } = useDisclosure();
 
   const handleAddTag = (tag) => {
@@ -49,6 +46,8 @@ const TagInput = () => {
       newTags.splice(index, 1);
 
       setFilteredTags(newTags);
+      onChange(newTags);
+
       onClose();
     }
   };
@@ -59,6 +58,7 @@ const TagInput = () => {
     let newTags = filteredTags;
     newTags.push(tagToDelete);
 
+    onChange(newTags);
     setFilteredTags(newTags);
   };
 
@@ -88,7 +88,7 @@ const TagInput = () => {
           <ModalHeader>Add a Filter</ModalHeader>
           <ModalCloseButton />
           <ModalBody>
-            <Input placeholder="Enter tag" value={inputValue} />
+            <Input placeholder="Enter tag" />
             {filteredTags.length > 0 && (
               <List spacing={1} mt={2}>
                 {filteredTags.map((tag, index) => (
