@@ -128,12 +128,17 @@ export default function Home() {
             </Center>
           ) : null}
         </GridItem>
-        <GridItem rowSpan={5} colSpan={6} bg="gray.700" borderRadius="lg">
-          <Card border="transparent">
+        <GridItem
+          rowSpan={5}
+          colSpan={6}
+          bg="gray.700"
+          borderRadius="lg"
+          overflowY="auto"
+        >
+          <Card border="transparent" overflowY="auto">
             <CardHeader>
               <Heading size="md">Client Report - {selectedIndividual}</Heading>
             </CardHeader>
-
             <CardBody>
               <Stack divider={<StackDivider />} spacing="4">
                 {summary != "" && isSummaryLoading ? (
