@@ -98,6 +98,7 @@ export async function GET(req: NextRequest) {
       const splitSummary = splitMarkdownByHeadings(summary);
       return Response.json({ data: splitSummary });
     } catch (e) {
+      console.log(e);
       return Response.json({ error: "LLM Retreival Error" });
     }
   } catch (error) {
