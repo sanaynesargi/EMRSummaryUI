@@ -88,7 +88,6 @@ const TagInput = ({
           <ModalHeader>Add a Filter</ModalHeader>
           <ModalCloseButton />
           <ModalBody>
-            <Input placeholder="Enter tag" />
             {filteredTags.length > 0 && (
               <List spacing={1} mt={2}>
                 {filteredTags.map((tag, index) => (
