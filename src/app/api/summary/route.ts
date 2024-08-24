@@ -35,8 +35,8 @@ function splitMarkdownByHeadings(markdown: string) {
 const getPatientSummaryReport = async (patientDataBlob: string) => {
   const userMessage = `Your document is ${patientDataBlob}.`;
 
-  return await getGPTResponse(SUMMARY_PROMPT + " " + userMessage);
-  //   return await getClaudeResponse(SUMMARY_PROMPT + " " + userMessage);
+  //   return await getGPTResponse(SUMMARY_PROMPT + " " + userMessage);
+  return await getClaudeResponse(SUMMARY_PROMPT + " " + userMessage);
 };
 
 export async function GET(req: NextRequest) {
