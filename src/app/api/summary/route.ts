@@ -99,7 +99,7 @@ export async function GET(req: NextRequest) {
       return Response.json({ data: splitSummary });
     } catch (e) {
       console.log(e);
-      return Response.json({ error: "LLM Retreival Error" });
+      return Response.json({ error: "LLM Retreival Error: " + e.toString() });
     }
   } catch (error) {
     console.log(error);
