@@ -26,6 +26,8 @@ import { fetchClients, fetchSummary } from "../../utils/requestManager";
 import ChakraUIRenderer from "chakra-ui-markdown-renderer";
 import ReactMarkdown from "react-markdown";
 import TagInput from "../components/tagInput";
+import { Layout } from "../components/Layout";
+import { NavBar } from "../components/NavBar";
 
 interface Person {
   first_name: string;
@@ -94,7 +96,7 @@ export default function Home() {
   };
 
   return (
-    <Center w="100vw" h="100vh" bg="gray.900">
+    <Layout>
       <Grid
         h="95%"
         w="97%"
@@ -139,7 +141,6 @@ export default function Home() {
           bg="gray.700"
           borderRadius="lg"
           gridRowStart="2"
-          overflow="auto"
         >
           {status == "success" ? (
             <VStack w="100%">
@@ -257,6 +258,6 @@ export default function Home() {
           borderRadius="lg"
         ></GridItem>
       </Grid>
-    </Center>
+    </Layout>
   );
 }

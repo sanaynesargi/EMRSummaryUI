@@ -14,7 +14,7 @@
     "@aws-sdk/s3-request-presigner": "^3.629.0",
     "@chakra-ui/next-js": "^2.2.0",
     "@chakra-ui/react": "^2.8.2",
-    "@emotion/react": "^11.13.0",
+    "@emotion/react": "^11.13.3",
     "@emotion/styled": "^11.13.0",
     "@vercel/postgres": "^0.9.0",
     "@vercel/postgres-kysely": "^0.9.0",
