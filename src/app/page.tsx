@@ -1,263 +1,83 @@
 "use client";
 
 import {
-  Box,
-  Card,
-  CardBody,
-  CardHeader,
-  Center,
-  Grid,
-  GridItem,
-  Heading,
-  Stack,
-  StackDivider,
-  VStack,
-  Text,
   Button,
-  HStack,
-  Skeleton,
-  Spinner,
-  useToast,
+  Flex,
+  Heading,
+  Image,
+  Stack,
+  Text,
+  useBreakpointValue,
 } from "@chakra-ui/react";
-import { useEffect, useState } from "react";
-import { SingleDatepicker } from "chakra-dayzed-datepicker";
-import { useQuery } from "react-query";
-import { fetchClients, fetchSummary } from "../../utils/requestManager";
-import ChakraUIRenderer from "chakra-ui-markdown-renderer";
-import ReactMarkdown from "react-markdown";
-import TagInput from "../components/tagInput";
 import { Layout } from "../components/Layout";
-import { NavBar } from "../components/NavBar";
+import { useRouter } from "next/navigation";
 
-interface Person {
-  first_name: string;
-  last_name: string;
-  id: string;
-}
-
-const constructMarkdownString = (
-  filters: string[],
-  sections: { [key: string]: string }
-): string => {
-  console.log(filters);
-  let markdown = "";
-  let selectedFilters = filters;
-
-  // If no filters are selected, use all section keys
-  if (selectedFilters.length === 0) {
-    selectedFilters = Object.keys(sections);
-  }
-
-  // Iterate over each section in the order of selected filters
-  selectedFilters.forEach((section) => {
-    if (sections.hasOwnProperty(section)) {
-      console.log(section);
-      // Add heading with the correct format
-      markdown += `**${section}**:\n\n`;
-      // Add the content of the section
-      markdown += sections[section] + "\n\n";
-    }
-  });
-  // Trim any trailing whitespace from the final markdown string
-  return markdown;
-};
-
-export default function Home() {
-  const [selectedIndividual, setSelectedIndividual] = useState("");
-
-  const [startDate, setStartDate] = useState(new Date());
-  const [endDate, setEndDate] = useState(new Date());
-
-  const [summary, setSummary] = useState({});
-  const [isSummaryLoading, setIsSummaryLoading] = useState(true);
-
-  useEffect(() => {
-    localStorage.setItem("chakra-ui-color-mode", "dark");
-  });
-
-  const { data, status } = useQuery("clients", fetchClients);
-  const [isFirstSummaryLoaded, setIsFirstSummaryLoaded] = useState(false);
-  const [filteredTags, setFilteredTags] = useState([]);
-  const [allTags, setAllTags] = useState([]);
-  const [mdString, setMdString] = useState("");
-
-  const toast = useToast();
-
-  const onFilterChange = (newFilters: any) => {
-    let selected = [];
-
-    for (const tag of allTags) {
-      if (!newFilters.includes(tag)) {
-        selected.push(tag);
-      }
-    }
-
-    setMdString(constructMarkdownString(selected, summary));
-  };
+export default function SplitScreen() {
+  const router = useRouter();
 
   return (
     <Layout>
-      <Grid
-        h="95%"
-        w="97%"
-        templateRows="repeat(6, 1fr)"
-        templateColumns="repeat(8, 1fr)"
-        gap={6}
-      >
-        <GridItem
-          rowSpan={1}
-          colSpan={2}
-          bg="gray.600"
-          borderRadius="lg"
-          gridRowStart="1"
-          gridColumnStart="1"
+      <Stack minH={"100vh"} direction={{ base: "column", md: "row" }}>
+        <Flex p={8} flex={1} align={"center"} justify={"center"}>
+          <Stack spacing={6} w={"full"} maxW={"lg"}>
+            <Heading fontSize={{ base: "3xl", md: "4xl", lg: "5xl" }}>
+              <Text
+                as={"span"}
+                position={"relative"}
+                _after={{
+                  content: "''",
+                  width: "full",
+                  height: useBreakpointValue({ base: "20%", md: "30%" }),
+                  position: "absolute",
+                  bottom: 1,
+                  left: 0,
+                  bg: "blue.400",
+                  zIndex: -1,
+                }}
+              >
+                Summarize
+              </Text>
+              <br />{" "}
+              <Text color={"blue.400"} as={"span"}>
+                Gain Insights
+              </Text>{" "}
+            </Heading>
+            <Text fontSize={{ base: "md", lg: "lg" }} color={"gray.500"}>
+              The record summary tool is an extremely useful resource for
+              propsoing treatment while saving time and labor. It&apos;s perfect
+              for all types of medical agencies.
+            </Text>
+            <Stack direction={{ base: "column", md: "row" }} spacing={4}>
+              <Button
+                rounded={"full"}
+                bg={"blue.400"}
+                color={"white"}
+                _hover={{
+                  bg: "blue.500",
+                }}
+                onClick={() => router.push("/action")}
+              >
+                Get Started
+              </Button>
+              <Button rounded={"full"}>How It Works</Button>
+            </Stack>
+          </Stack>
+        </Flex>
+        <Flex
+          justify="flex-end"
+          align="center"
+          p={0} // Remove padding if unnecessary
+          m={0} // Remove margin if unnecessary
+          w="40vw"
         >
-          <Center>
-            <VStack>
-              <HStack>
-                <SingleDatepicker
-                  name="date-input"
-                  date={startDate}
-                  onDateChange={setStartDate}
-                />
-                <Text>to</Text>
-                <SingleDatepicker
-                  name="date-input"
-                  date={endDate}
-                  onDateChange={setEndDate}
-                />
-              </HStack>
-              <TagInput
-                filteredTags={filteredTags}
-                setFilteredTags={setFilteredTags}
-                onChange={onFilterChange}
-              />
-            </VStack>
-          </Center>
-        </GridItem>
-        <GridItem
-          rowSpan={5}
-          colSpan={2}
-          bg="gray.700"
-          borderRadius="lg"
-          gridRowStart="2"
-        >
-          {status == "success" ? (
-            <VStack w="100%">
-              {data.data.map((person: Person, idx: number) => {
-                const displayStr = `${person.first_name} ${person.last_name}`;
-                return (
-                  <Button
-                    w="100%"
-                    key={idx}
-                    bg={
-                      selectedIndividual == displayStr ? "#4E5766" : "#119DA4"
-                    }
-                    onClick={async () => {
-                      setSelectedIndividual(displayStr);
-                      setIsFirstSummaryLoaded(true);
-
-                      const summaryResponse = await fetchSummary(person.id);
-                      setIsSummaryLoading(true);
-
-                      if (summaryResponse.error) {
-                        // put a toast or something -> handle the error
-                        toast({
-                          title: "Something went wrong..",
-                          description:
-                            "We've had an error contacting the server.",
-                          status: "error",
-                          duration: 3000,
-                          isClosable: true,
-                        });
-                        setIsFirstSummaryLoaded(false);
-                        setIsSummaryLoading(false);
-                        setSummary("");
-                        setFilteredTags([]);
-                        return;
-                      }
-
-                      setSummary(summaryResponse.data);
-                      setFilteredTags(Object.keys(summaryResponse.data));
-                      setAllTags(Object.keys(summaryResponse.data));
-                      setMdString(
-                        constructMarkdownString(
-                          Object.keys(summaryResponse.data),
-                          summaryResponse.data
-                        )
-                      );
-                      setIsSummaryLoading(false);
-                    }}
-                  >
-                    <Text fontWeight="bold">{displayStr}</Text>
-                  </Button>
-                );
-              })}
-            </VStack>
-          ) : status == "loading" ? (
-            <Center h="100%">
-              <Spinner />
-            </Center>
-          ) : null}
-        </GridItem>
-        <GridItem
-          rowSpan={5}
-          colSpan={6}
-          bg="gray.700"
-          borderRadius="lg"
-          overflowY="auto"
-        >
-          <Card border="transparent" overflowY="auto">
-            <CardHeader>
-              <Heading size="md">Client Report - {selectedIndividual}</Heading>
-            </CardHeader>
-            <CardBody>
-              <Stack divider={<StackDivider />} spacing="4">
-                {isSummaryLoading && isFirstSummaryLoaded ? (
-                  <Center>
-                    <Spinner />
-                  </Center>
-                ) : !isSummaryLoading ? (
-                  <Box>
-                    <Heading size="xs" textTransform="uppercase">
-                      Summary
-                    </Heading>
-                    <Text pt="2" fontSize="sm">
-                      <ReactMarkdown
-                        components={ChakraUIRenderer()}
-                        children={mdString}
-                        skipHtml
-                      />
-                    </Text>
-                  </Box>
-                ) : null}
-                {/* <Box>
-                  <Heading size="xs" textTransform="uppercase">
-                    Status Updates
-                  </Heading>
-                  <Text pt="2" fontSize="sm">
-                    Check out the day-to-day status of your clients.
-                  </Text>
-                </Box>
-                <Box>
-                  <Heading size="xs" textTransform="uppercase">
-                    Anomalies
-                  </Heading>
-                  <Text pt="2" fontSize="sm">
-                    See a detailed view of all anomalies found.
-                  </Text>
-                </Box> */}
-              </Stack>
-            </CardBody>
-          </Card>
-        </GridItem>
-        <GridItem
-          rowSpan={1}
-          colSpan={6}
-          bg="gray.700"
-          borderRadius="lg"
-        ></GridItem>
-      </Grid>
+          <Image
+            alt={"Login Image"}
+            objectFit={"fill"}
+            src={"/title.png"}
+            borderRadius="full"
+          />
+        </Flex>
+      </Stack>
     </Layout>
   );
 }
