@@ -35,7 +35,7 @@ export default function SplitScreen() {
                   zIndex: -1,
                 }}
               >
-                Summarize
+                Summarize.
               </Text>
               <br />{" "}
               <Text color={"blue.400"} as={"span"}>
