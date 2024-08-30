@@ -41,7 +41,9 @@ const getAPIData = async (url: string, params: any) => {
 };
 
 const postAPIData = async (url: string, body: any) => {
-  const req = await axios.post(url, { body });
+  const req = await axios.post(url, body, {
+    headers: { "Content-Type": "Content-Type: application/json" },
+  });
 
   const responseCode = req.status;
   const responseData = req.data;
@@ -82,6 +84,9 @@ export const fetchClients = async () => {
   return await getAPIData(clientsEndpoint, {});
 };
 
-export const fetchSummary = async (clientId: string) => {
-  return await getAPIData(summaryEndpoint, { clientId });
+export const fetchSummary = async (
+  clientId: string,
+  workingPrompt?: string
+) => {
+  return await postAPIData(summaryEndpoint, { clientId, workingPrompt });
 };

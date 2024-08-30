@@ -18,6 +18,7 @@ import {
   Skeleton,
   Spinner,
   useToast,
+  Textarea,
 } from "@chakra-ui/react";
 import { useEffect, useState } from "react";
 import { SingleDatepicker } from "chakra-dayzed-datepicker";
@@ -28,6 +29,7 @@ import ReactMarkdown from "react-markdown";
 import TagInput from "../../components/tagInput";
 import { Layout } from "../../components/Layout";
 import { NavBar } from "../../components/NavBar";
+import { SUMMARY_PROMPT } from "../../../utils/workingPrompt";
 
 interface Person {
   first_name: string;
@@ -81,6 +83,9 @@ export default function Home() {
   const [allTags, setAllTags] = useState([]);
   const [mdString, setMdString] = useState("");
 
+  // only for debugging and development purposes
+  const [currentPrompt, setCurrentPrompt] = useState(SUMMARY_PROMPT);
+
   const toast = useToast();
 
   const onFilterChange = (newFilters: any) => {
@@ -93,6 +98,11 @@ export default function Home() {
     }
 
     setMdString(constructMarkdownString(selected, summary));
+  };
+
+  const handlePromptChange = (e: any) => {
+    let inputValue = e.target.value;
+    setCurrentPrompt(inputValue);
   };
 
   return (
@@ -157,7 +167,10 @@ export default function Home() {
                       setSelectedIndividual(displayStr);
                       setIsFirstSummaryLoaded(true);
 
-                      const summaryResponse = await fetchSummary(person.id);
+                      const summaryResponse = await fetchSummary(
+                        person.id,
+                        currentPrompt
+                      );
                       setIsSummaryLoading(true);
 
                       if (summaryResponse.error) {
@@ -231,32 +244,23 @@ export default function Home() {
                     </Text>
                   </Box>
                 ) : null}
-                {/* <Box>
-                  <Heading size="xs" textTransform="uppercase">
-                    Status Updates
-                  </Heading>
-                  <Text pt="2" fontSize="sm">
-                    Check out the day-to-day status of your clients.
-                  </Text>
-                </Box>
-                <Box>
-                  <Heading size="xs" textTransform="uppercase">
-                    Anomalies
-                  </Heading>
-                  <Text pt="2" fontSize="sm">
-                    See a detailed view of all anomalies found.
-                  </Text>
-                </Box> */}
               </Stack>
             </CardBody>
           </Card>
         </GridItem>
-        <GridItem
-          rowSpan={1}
-          colSpan={6}
-          bg="gray.700"
-          borderRadius="lg"
-        ></GridItem>
+        <GridItem rowSpan={1} colSpan={6} bg="gray.700" borderRadius="lg">
+          <Box ml="5px" mt="5px">
+            <Text fontWeight="bold" color="teal.400" textDecor={"CaptionText"}>
+              DEBUG ONLY: Prompt Edit (final version will be sent)
+            </Text>
+            <Textarea
+              value={currentPrompt}
+              onChange={handlePromptChange}
+              placeholder={currentPrompt}
+              size="sm"
+            />
+          </Box>
+        </GridItem>
       </Grid>
     </Layout>
   );

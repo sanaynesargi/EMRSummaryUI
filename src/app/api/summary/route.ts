@@ -32,16 +32,23 @@ function splitMarkdownByHeadings(markdown: string) {
   return sections;
 }
 
-const getPatientSummaryReport = async (patientDataBlob: string) => {
+const getPatientSummaryReport = async (
+  patientDataBlob: string,
+  customPrompt?: string
+) => {
   const userMessage = `Your document is ${patientDataBlob}.`;
+  const addedPrompt = customPrompt ? customPrompt : SUMMARY_PROMPT;
 
   //   return await getGPTResponse(SUMMARY_PROMPT + " " + userMessage);
-  return await getClaudeResponse(SUMMARY_PROMPT + " " + userMessage);
+  const AIResp = await getClaudeResponse(addedPrompt + " " + userMessage);
+
+  return AIResp;
 };
 
-export async function GET(req: NextRequest) {
-  const searchParams = req.nextUrl.searchParams;
-  const clientId = searchParams.get("clientId");
+export async function POST(req: Request) {
+  const searchParams = await req.json();
+  const clientId = searchParams.clientId;
+  const userPrompt = searchParams.workingPrompt; // TODO: REMOVE WHEN FEATURE IS REMOVED (POTENTIAL SECURITY VUNERABILITY)
 
   if (!clientId) {
     return NextResponse.json(
@@ -94,7 +101,7 @@ export async function GET(req: NextRequest) {
     const text = result.value;
 
     try {
-      const summary = await getPatientSummaryReport(text);
+      const summary = await getPatientSummaryReport(text, userPrompt);
       const splitSummary = splitMarkdownByHeadings(summary);
       return Response.json({ data: splitSummary });
     } catch (e) {
