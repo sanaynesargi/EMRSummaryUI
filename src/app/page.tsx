@@ -11,9 +11,14 @@ import {
 } from "@chakra-ui/react";
 import { Layout } from "../components/Layout";
 import { useRouter } from "next/navigation";
+import { useEffect } from "react";
 
 export default function SplitScreen() {
   const router = useRouter();
+
+  useEffect(() => {
+    localStorage.setItem("chakra-ui-color-mode", "dark");
+  });
 
   return (
     <Layout>
@@ -55,7 +60,7 @@ export default function SplitScreen() {
                 _hover={{
                   bg: "blue.500",
                 }}
-                onClick={() => router.push("/action")}
+                onClick={() => router.push("/login")}
               >
                 Get Started
               </Button>

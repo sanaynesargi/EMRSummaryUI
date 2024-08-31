@@ -13,8 +13,11 @@ import {
   Text,
   useColorModeValue,
 } from "@chakra-ui/react";
+import { useRouter } from "next/navigation";
 
 export default function SimpleCard() {
+  const router = useRouter();
+
   return (
     <Flex
       minH={"100vh"}
@@ -59,6 +62,7 @@ export default function SimpleCard() {
                 _hover={{
                   bg: "blue.500",
                 }}
+                onClick={() => router.push("/action")}
               >
                 Log in
               </Button>

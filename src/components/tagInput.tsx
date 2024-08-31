@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import {
   Box,
   Button,
@@ -23,6 +23,7 @@ import {
 
 interface TagInputProps {
   filteredTags: any[];
+  allTags: any[];
   setFilteredTags: Function;
   onChange: Function;
 }
@@ -31,15 +32,15 @@ const TagInput = ({
   filteredTags,
   setFilteredTags,
   onChange,
+  allTags,
 }: TagInputProps) => {
   const [tags, setTags] = useState([]);
-  const [inputValue, setInputValue] = useState("");
+  const [set, setSet] = useState(false);
   const { isOpen, onOpen, onClose } = useDisclosure();
 
   const handleAddTag = (tag) => {
     if (tag && !tags.includes(tag)) {
       setTags([...tags, tag]);
-      setInputValue("");
 
       let newTags = filteredTags;
       let index = newTags.indexOf(tag);

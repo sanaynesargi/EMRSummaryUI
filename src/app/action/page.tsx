@@ -41,7 +41,6 @@ const constructMarkdownString = (
   filters: string[],
   sections: { [key: string]: string }
 ): string => {
-  console.log(filters);
   let markdown = "";
   let selectedFilters = filters;
 
@@ -53,7 +52,6 @@ const constructMarkdownString = (
   // Iterate over each section in the order of selected filters
   selectedFilters.forEach((section) => {
     if (sections.hasOwnProperty(section)) {
-      console.log(section);
       // Add heading with the correct format
       markdown += `**${section}**:\n\n`;
       // Add the content of the section
@@ -113,6 +111,7 @@ export default function Home() {
         templateRows="repeat(6, 1fr)"
         templateColumns="repeat(8, 1fr)"
         gap={6}
+        suppressHydrationWarning
       >
         <GridItem
           rowSpan={1}
@@ -141,6 +140,7 @@ export default function Home() {
                 filteredTags={filteredTags}
                 setFilteredTags={setFilteredTags}
                 onChange={onFilterChange}
+                allTags={allTags}
               />
             </VStack>
           </Center>
@@ -167,11 +167,14 @@ export default function Home() {
                       setSelectedIndividual(displayStr);
                       setIsFirstSummaryLoaded(true);
 
+                      setIsSummaryLoading(true);
+                      setMdString("");
+                      setSummary({});
+
                       const summaryResponse = await fetchSummary(
                         person.id,
                         currentPrompt
                       );
-                      setIsSummaryLoading(true);
 
                       if (summaryResponse.error) {
                         // put a toast or something -> handle the error
