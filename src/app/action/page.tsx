@@ -175,7 +175,15 @@ export default function Home() {
 
                       // see if the markdown is cached
                       const cachedMarkdown: string =
-                        await retreiveSummaryMarkdown(selectedIndividual);
+                        await retreiveSummaryMarkdown(displayStr); // not selected individual
+
+                      if (cachedMarkdown) {
+                        console.log("Cache Hit: " + displayStr);
+                        console.log("Text: " + cachedMarkdown);
+                        console.log("\n\n");
+                      } else {
+                        console.log("Cache Miss: " + displayStr);
+                      }
 
                       if (cachedMarkdown) {
                         const sections =
@@ -185,10 +193,7 @@ export default function Home() {
                         setFilteredTags(Object.keys(sections));
                         setAllTags(Object.keys(sections));
 
-                        const initialMd = constructMarkdownString(
-                          Object.keys(sections),
-                          sections
-                        );
+                        const initialMd = cachedMarkdown;
 
                         setMdString(initialMd);
                         setIsSummaryLoading(false);
@@ -227,7 +232,7 @@ export default function Home() {
                       );
 
                       // cache the current markdown in Redis for retreival later
-                      cacheSummaryMarkdown(selectedIndividual, initialMd);
+                      await cacheSummaryMarkdown(displayStr, initialMd);
 
                       setMdString(initialMd);
                       setIsSummaryLoading(false);
