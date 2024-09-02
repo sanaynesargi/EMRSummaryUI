@@ -30,6 +30,8 @@ import TagInput from "../../components/tagInput";
 import { Layout } from "../../components/Layout";
 import { NavBar } from "../../components/NavBar";
 import { SUMMARY_PROMPT } from "../../../utils/workingPrompt";
+import { cacheSummaryMarkdown, retreiveSummaryMarkdown } from "../actions";
+import { splitMarkdownByHeadings } from "../../../utils/splitMarkdownByHeadings";
 
 interface Person {
   first_name: string;
@@ -171,6 +173,28 @@ export default function Home() {
                       setMdString("");
                       setSummary({});
 
+                      // see if the markdown is cached
+                      const cachedMarkdown: string =
+                        await retreiveSummaryMarkdown(selectedIndividual);
+
+                      if (cachedMarkdown) {
+                        const sections =
+                          splitMarkdownByHeadings(cachedMarkdown);
+
+                        setSummary(sections);
+                        setFilteredTags(Object.keys(sections));
+                        setAllTags(Object.keys(sections));
+
+                        const initialMd = constructMarkdownString(
+                          Object.keys(sections),
+                          sections
+                        );
+
+                        setMdString(initialMd);
+                        setIsSummaryLoading(false);
+                        return;
+                      }
+
                       const summaryResponse = await fetchSummary(
                         person.id,
                         currentPrompt
@@ -180,8 +204,7 @@ export default function Home() {
                         // put a toast or something -> handle the error
                         toast({
                           title: "Something went wrong..",
-                          description:
-                            "We've had an error contacting the server.",
+                          description: summaryResponse.error,
                           status: "error",
                           duration: 3000,
                           isClosable: true,
@@ -193,15 +216,20 @@ export default function Home() {
                         return;
                       }
 
+                      // A little messy, but set all states
                       setSummary(summaryResponse.data);
                       setFilteredTags(Object.keys(summaryResponse.data));
                       setAllTags(Object.keys(summaryResponse.data));
-                      setMdString(
-                        constructMarkdownString(
-                          Object.keys(summaryResponse.data),
-                          summaryResponse.data
-                        )
+
+                      const initialMd = constructMarkdownString(
+                        Object.keys(summaryResponse.data),
+                        summaryResponse.data
                       );
+
+                      // cache the current markdown in Redis for retreival later
+                      cacheSummaryMarkdown(selectedIndividual, initialMd);
+
+                      setMdString(initialMd);
                       setIsSummaryLoading(false);
                     }}
                   >

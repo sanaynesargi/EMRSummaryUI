@@ -5,32 +5,7 @@ import { db } from "../../../orm/database";
 import { SUMMARY_PROMPT } from "../../../../utils/workingPrompt";
 import { getGPTResponse } from "../../../../utils/getGPTResponse";
 import { getClaudeResponse } from "../../../../utils/getClaudeResponse";
-
-function splitMarkdownByHeadings(markdown: string) {
-  const sections: { [key: string]: string } = {};
-  const lines = markdown.split("\n");
-  let currentHeading = "";
-
-  lines.forEach((line) => {
-    // Check if the line starts with a heading format: "**Heading**:"
-    if (line.startsWith("**") && line.includes(":")) {
-      // Extract heading and content
-      const [rawHeading, rawContent] = line.split(":");
-      currentHeading = rawHeading.slice(2); // Remove "**" from the heading
-      sections[currentHeading] = rawContent.slice(2); // Join the content parts
-    } else if (currentHeading) {
-      // Append content to the current heading
-      sections[currentHeading] += "\n" + line;
-    }
-  });
-
-  // Ensure each section ends without trailing newlines
-  for (const heading in sections) {
-    sections[heading] = sections[heading];
-  }
-
-  return sections;
-}
+import { splitMarkdownByHeadings } from "../../../../utils/splitMarkdownByHeadings";
 
 const getPatientSummaryReport = async (
   patientDataBlob: string,
@@ -106,7 +81,7 @@ export async function POST(req: Request) {
       return Response.json({ data: splitSummary });
     } catch (e) {
       console.log(e);
-      return Response.json({ error: "LLM Retreival Error: " + e.toString() });
+      return Response.json({ error: "LLM Retreival Error" });
     }
   } catch (error) {
     console.log(error);
