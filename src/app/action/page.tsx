@@ -32,6 +32,7 @@ import { NavBar } from "../../components/NavBar";
 import { SUMMARY_PROMPT } from "../../../utils/workingPrompt";
 import { cacheSummaryMarkdown, retreiveSummaryMarkdown } from "../actions";
 import { splitMarkdownByHeadings } from "../../../utils/splitMarkdownByHeadings";
+import { TabbedSummary } from "../../components/TabbedSummary";
 
 interface Person {
   first_name: string;
@@ -83,6 +84,9 @@ export default function Home() {
   const [allTags, setAllTags] = useState([]);
   const [mdString, setMdString] = useState("");
 
+  // setting up tab -> markdown array for tab-based rendering
+  const [nameSummaryMap, setNameSummaryMap] = useState({});
+
   // only for debugging and development purposes
   const [currentPrompt, setCurrentPrompt] = useState(SUMMARY_PROMPT);
 
@@ -103,6 +107,12 @@ export default function Home() {
   const handlePromptChange = (e: any) => {
     let inputValue = e.target.value;
     setCurrentPrompt(inputValue);
+  };
+
+  const onTabDeleted = (name: string) => {
+    let oldMap = nameSummaryMap;
+    delete oldMap[name];
+    setNameSummaryMap(oldMap);
   };
 
   return (
@@ -194,6 +204,10 @@ export default function Home() {
                         setAllTags(Object.keys(sections));
 
                         const initialMd = cachedMarkdown;
+                        setNameSummaryMap({
+                          ...nameSummaryMap,
+                          [displayStr]: initialMd,
+                        });
 
                         setMdString(initialMd);
                         setIsSummaryLoading(false);
@@ -233,7 +247,10 @@ export default function Home() {
 
                       // cache the current markdown in Redis for retreival later
                       await cacheSummaryMarkdown(displayStr, initialMd);
-
+                      setNameSummaryMap({
+                        ...nameSummaryMap,
+                        [displayStr]: initialMd,
+                      });
                       setMdString(initialMd);
                       setIsSummaryLoading(false);
                     }}
@@ -268,16 +285,15 @@ export default function Home() {
                   </Center>
                 ) : !isSummaryLoading ? (
                   <Box>
-                    <Heading size="xs" textTransform="uppercase">
-                      Summary
+                    <Heading size="xs" textTransform="uppercase" mb="2">
+                      {Object.keys(nameSummaryMap).length == 1
+                        ? "Patient Summary"
+                        : "Patient Summaries"}
                     </Heading>
-                    <Text pt="2" fontSize="sm">
-                      <ReactMarkdown
-                        components={ChakraUIRenderer()}
-                        children={mdString}
-                        skipHtml
-                      />
-                    </Text>
+                    <TabbedSummary
+                      summaryMap={nameSummaryMap}
+                      deleteTabName={onTabDeleted}
+                    />
                   </Box>
                 ) : null}
               </Stack>
