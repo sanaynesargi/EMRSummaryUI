@@ -40,6 +40,17 @@ interface Person {
   id: string;
 }
 
+const countAsterisksInStr = (test: string) => {
+  let count = 0;
+  for (const c of test) {
+    if (c == "*") {
+      count++;
+    }
+  }
+
+  return count;
+};
+
 const constructMarkdownString = (
   filters: string[],
   sections: { [key: string]: string }
@@ -55,12 +66,23 @@ const constructMarkdownString = (
   // Iterate over each section in the order of selected filters
   selectedFilters.forEach((section) => {
     if (sections.hasOwnProperty(section)) {
+      let asts = countAsterisksInStr(section);
       // Add heading with the correct format
-      markdown += `**${section}**:\n\n`;
+      if (section.at(-1) == "*") {
+        let extraAstsAtEnd = asts - 2;
+        let normalHeading = `**${
+          extraAstsAtEnd == 0 ? section : section.slice(0, -extraAstsAtEnd)
+        }:\n\n`;
+
+        markdown += normalHeading;
+      } else {
+        markdown += `**${section}**:\n\n`;
+      }
       // Add the content of the section
       markdown += sections[section] + "\n\n";
     }
   });
+
   // Trim any trailing whitespace from the final markdown string
   return markdown;
 };
@@ -86,6 +108,10 @@ export default function Home() {
 
   // setting up tab -> markdown array for tab-based rendering
   const [nameSummaryMap, setNameSummaryMap] = useState({});
+  const [selectedTab, setSelectedTab] = useState("");
+  const [clearTags, setClearTags] = useState(0); // count of clear tags
+  const [tabHistory, setTabHistory] = useState([]);
+  const [ogMd, setOgMd] = useState({});
 
   // only for debugging and development purposes
   const [currentPrompt, setCurrentPrompt] = useState(SUMMARY_PROMPT);
@@ -93,6 +119,7 @@ export default function Home() {
   const toast = useToast();
 
   const onFilterChange = (newFilters: any) => {
+    console.log("filter called + " + selectedTab);
     let selected = [];
 
     for (const tag of allTags) {
@@ -102,6 +129,21 @@ export default function Home() {
     }
 
     setMdString(constructMarkdownString(selected, summary));
+
+    let map = nameSummaryMap;
+    setNameSummaryMap({});
+
+    map[selectedTab] = constructMarkdownString(selected, summary);
+    setNameSummaryMap(map);
+  };
+
+  const onNewTab = (allTags: any) => {
+    console.log("on new tab claled: " + tabHistory);
+    if (tabHistory.length == 0) {
+      return;
+    }
+
+    nameSummaryMap[tabHistory[0]] = ogMd[tabHistory[0]];
   };
 
   const handlePromptChange = (e: any) => {
@@ -113,6 +155,32 @@ export default function Home() {
     let oldMap = nameSummaryMap;
     delete oldMap[name];
     setNameSummaryMap(oldMap);
+  };
+
+  const onTabSwitch = (name: string) => {
+    if (!name) {
+      return;
+    }
+
+    const sections = splitMarkdownByHeadings(nameSummaryMap[name]);
+
+    setClearTags(clearTags + 1);
+    setSummary(sections);
+    setFilteredTags(Object.keys(sections));
+    setAllTags(Object.keys(sections));
+    setSelectedTab(name);
+
+    let hist = tabHistory;
+
+    if (tabHistory[tabHistory.length - 1] == name) {
+      return;
+    }
+    hist.push(name);
+
+    if (hist.length == 3) {
+      hist.splice(0, 1);
+    }
+    setTabHistory(hist);
   };
 
   return (
@@ -153,6 +221,8 @@ export default function Home() {
                 setFilteredTags={setFilteredTags}
                 onChange={onFilterChange}
                 allTags={allTags}
+                clearTags={clearTags}
+                onNewTab={onNewTab}
               />
             </VStack>
           </Center>
@@ -180,7 +250,7 @@ export default function Home() {
                       setIsFirstSummaryLoaded(true);
 
                       setIsSummaryLoading(true);
-                      setMdString("");
+                      //setMdString("");
                       setSummary({});
 
                       // see if the markdown is cached
@@ -203,7 +273,11 @@ export default function Home() {
                         setFilteredTags(Object.keys(sections));
                         setAllTags(Object.keys(sections));
 
-                        const initialMd = cachedMarkdown;
+                        const initialMd = constructMarkdownString(
+                          Object.keys(sections),
+                          sections
+                        );
+
                         setNameSummaryMap({
                           ...nameSummaryMap,
                           [displayStr]: initialMd,
@@ -211,6 +285,11 @@ export default function Home() {
 
                         setMdString(initialMd);
                         setIsSummaryLoading(false);
+
+                        setOgMd({
+                          ...ogMd,
+                          [displayStr]: initialMd,
+                        });
                         return;
                       }
 
@@ -249,6 +328,10 @@ export default function Home() {
                       await cacheSummaryMarkdown(displayStr, initialMd);
                       setNameSummaryMap({
                         ...nameSummaryMap,
+                        [displayStr]: initialMd,
+                      });
+                      setOgMd({
+                        ...ogMd,
                         [displayStr]: initialMd,
                       });
                       setMdString(initialMd);
@@ -294,6 +377,7 @@ export default function Home() {
                     <TabbedSummary
                       summaryMap={nameSummaryMap}
                       deleteTabName={onTabDeleted}
+                      onTabSwitch={onTabSwitch}
                     />
                   )}
                 </Box>

@@ -20,11 +20,13 @@ import ReactMarkdown from "react-markdown";
 interface TabbedSummaryProps {
   summaryMap: any;
   deleteTabName: Function;
+  onTabSwitch: Function;
 }
 
 export const TabbedSummary = ({
   summaryMap,
   deleteTabName,
+  onTabSwitch,
 }: TabbedSummaryProps) => {
   const [tabs, setTabs] = useState([]);
   const [tabMarkdown, setTabMarkdown] = useState([]);
@@ -85,16 +87,40 @@ export const TabbedSummary = ({
 
     setTabs(localTabs);
     setTabMarkdown(localTabMd);
+  }, [JSON.stringify(summaryMap)]);
+
+  // this will only run on a key add
+  useEffect(() => {
+    let localTabs = [];
+    let localTabMd = [];
+
+    for (const key of Object.keys(summaryMap)) {
+      localTabs.push(key);
+      localTabMd.push(summaryMap[key]);
+    }
+
+    onTabSwitch(localTabs[localTabs.length - 1]);
   }, [summaryMap]);
 
   return (
-    <Tabs>
+    <Tabs
+      onChange={(idx) => {
+        const name = tabs[idx];
+        onTabSwitch(name);
+      }}
+    >
       <TabList>
-        {tabs.map((name, index) => (
-          <CustomTab index={index} key={index}>
-            {name}
-          </CustomTab>
-        ))}
+        {tabs.map((name, index) => {
+          if (name?.length == 0) {
+            return;
+          }
+
+          return (
+            <CustomTab index={index} key={index}>
+              {name}
+            </CustomTab>
+          );
+        })}
       </TabList>
       <TabPanels>
         {tabMarkdown.map((content, index) => (

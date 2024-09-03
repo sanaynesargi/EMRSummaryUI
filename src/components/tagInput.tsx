@@ -26,17 +26,26 @@ interface TagInputProps {
   allTags: any[];
   setFilteredTags: Function;
   onChange: Function;
+  clearTags: number;
+  onNewTab: Function;
 }
 
 const TagInput = ({
   filteredTags,
   setFilteredTags,
   onChange,
+  clearTags,
   allTags,
+  onNewTab,
 }: TagInputProps) => {
   const [tags, setTags] = useState([]);
   const [set, setSet] = useState(false);
   const { isOpen, onOpen, onClose } = useDisclosure();
+
+  useEffect(() => {
+    setTags([]);
+    onNewTab(allTags);
+  }, [clearTags]);
 
   const handleAddTag = (tag) => {
     if (tag && !tags.includes(tag)) {
@@ -73,7 +82,7 @@ const TagInput = ({
             variant="solid"
             colorScheme="blue"
           >
-            <TagLabel>{tag}</TagLabel>
+            <TagLabel>{tag.includes("**") ? tag.slice(0, -2) : tag}</TagLabel>
             <TagCloseButton onClick={() => handleDeleteTag(tag)} />
           </Tag>
         ))}
@@ -100,7 +109,7 @@ const TagInput = ({
                     p={2}
                     borderRadius="md"
                   >
-                    <Text>{tag}</Text>
+                    <Text>{tag.includes("**") ? tag.slice(0, -2) : tag}</Text>
                   </ListItem>
                 ))}
               </List>
