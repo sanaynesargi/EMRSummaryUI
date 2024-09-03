@@ -279,23 +279,24 @@ export default function Home() {
             </CardHeader>
             <CardBody>
               <Stack divider={<StackDivider />} spacing="4">
-                {isSummaryLoading && isFirstSummaryLoaded ? (
-                  <Center>
-                    <Spinner />
-                  </Center>
-                ) : !isSummaryLoading ? (
-                  <Box>
-                    <Heading size="xs" textTransform="uppercase" mb="2">
-                      {Object.keys(nameSummaryMap).length == 1
-                        ? "Patient Summary"
-                        : "Patient Summaries"}
-                    </Heading>
+                <Box>
+                  <Heading size="xs" textTransform="uppercase" mb="2">
+                    {Object.keys(nameSummaryMap).length == 1
+                      ? "Patient Summary"
+                      : "Patient Summaries"}
+                  </Heading>
+
+                  {isFirstSummaryLoaded && isSummaryLoading ? (
+                    <Center>
+                      <Spinner />
+                    </Center>
+                  ) : (
                     <TabbedSummary
                       summaryMap={nameSummaryMap}
                       deleteTabName={onTabDeleted}
                     />
-                  </Box>
-                ) : null}
+                  )}
+                </Box>
               </Stack>
             </CardBody>
           </Card>
