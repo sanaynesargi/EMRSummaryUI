@@ -37,7 +37,8 @@
     "react-dom": "^18",
     "react-markdown": "^8.0.7",
     "react-query": "^3.39.3",
-    "vercel": "^35.2.4"
+    "vercel": "^35.2.4",
+    "yup": "^1.4.0"
   },
   "devDependencies": {
     "@types/node": "^20",

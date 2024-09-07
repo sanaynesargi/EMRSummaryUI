@@ -1,5 +1,6 @@
 "use client";
 
+import { WarningIcon } from "@chakra-ui/icons";
 import {
   Flex,
   Box,
@@ -12,11 +13,35 @@ import {
   Heading,
   Text,
   useColorModeValue,
+  FormErrorMessage,
 } from "@chakra-ui/react";
+import { useFormik } from "formik";
 import { useRouter } from "next/navigation";
+import * as Yup from "yup";
 
 export default function SimpleCard() {
   const router = useRouter();
+
+  const validationSchema = Yup.object({
+    email: Yup.string()
+      .required("Email Address cannot be empty")
+      .email("Looks like this is not an email"),
+    password: Yup.string().required("Password cannot be empty"),
+  });
+
+  const formik = useFormik({
+    initialValues: {
+      email: "",
+      password: "",
+      rememberMe: false,
+    },
+    validationSchema,
+    validateOnChange: true,
+    onSubmit: (values) => {
+      console.log(values);
+      router.push("/action");
+    },
+  });
 
   return (
     <Flex
@@ -38,36 +63,71 @@ export default function SimpleCard() {
           boxShadow={"lg"}
           p={8}
         >
-          <Stack spacing={4}>
-            <FormControl id="email">
-              <FormLabel>Email address</FormLabel>
-              <Input type="email" />
-            </FormControl>
-            <FormControl id="password">
-              <FormLabel>Password</FormLabel>
-              <Input type="password" />
-            </FormControl>
-            <Stack spacing={10}>
-              <Stack
-                direction={{ base: "column", sm: "row" }}
-                align={"start"}
-                justify={"space-between"}
+          <form onSubmit={formik.handleSubmit}>
+            <Stack spacing={4}>
+              <FormControl
+                id="email"
+                isInvalid={formik.touched.email && formik.errors.email != ""}
               >
-                <Checkbox>Remember me</Checkbox>
-                <Text color={"blue.400"}>Forgot password?</Text>
+                <FormLabel>Email address</FormLabel>
+                <Input
+                  onChange={formik.handleChange}
+                  value={formik.values.email}
+                />
+                {formik.touched.email && formik.errors.email && (
+                  <FormErrorMessage>
+                    <WarningIcon mr="5px" />
+                    {formik.errors.email}
+                  </FormErrorMessage>
+                )}
+              </FormControl>
+              <FormControl
+                id="password"
+                isInvalid={
+                  formik.touched.password && formik.errors.password != ""
+                }
+              >
+                <FormLabel>Password</FormLabel>
+                <Input
+                  type="password"
+                  onChange={formik.handleChange}
+                  value={formik.values.password}
+                />
+                {formik.touched.password && formik.errors.password && (
+                  <FormErrorMessage>
+                    <WarningIcon mr="5px" />
+                    {formik.errors.password}
+                  </FormErrorMessage>
+                )}
+              </FormControl>
+              <Stack spacing={10}>
+                <Stack
+                  direction={{ base: "column", sm: "row" }}
+                  align={"start"}
+                  justify={"space-between"}
+                >
+                  <Checkbox
+                    name="rememberMe"
+                    onChange={formik.handleChange}
+                    isChecked={formik.values.rememberMe}
+                  >
+                    Remember me
+                  </Checkbox>
+                  <Text color={"blue.400"}>Forgot password?</Text>
+                </Stack>
+                <Button
+                  bg={"blue.400"}
+                  color={"white"}
+                  _hover={{
+                    bg: "blue.500",
+                  }}
+                  type="submit"
+                >
+                  Log in
+                </Button>
               </Stack>
-              <Button
-                bg={"blue.400"}
-                color={"white"}
-                _hover={{
-                  bg: "blue.500",
-                }}
-                onClick={() => router.push("/action")}
-              >
-                Log in
-              </Button>
             </Stack>
-          </Stack>
+          </form>
         </Box>
       </Stack>
     </Flex>
