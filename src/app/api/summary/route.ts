@@ -6,7 +6,6 @@ import { SUMMARY_PROMPT } from "../../../../utils/workingPrompt";
 import { getGPTResponse } from "../../../../utils/getGPTResponse";
 import { getClaudeResponse } from "../../../../utils/getClaudeResponse";
 import { splitMarkdownByHeadings } from "../../../../utils/splitMarkdownByHeadings";
-import { countTokens } from "@anthropic-ai/tokenizer";
 
 const getPatientSummaryReport = async (
   patientDataBlob: string,
@@ -17,7 +16,7 @@ const getPatientSummaryReport = async (
 
   //   return await getGPTResponse(SUMMARY_PROMPT + " " + userMessage);
   const finalPrompt = addedPrompt + " " + userMessage;
-  const finalPromptTokens = countTokens(finalPrompt);
+  const finalPromptTokens = 0; //countTokens(finalPrompt);
   const isLargeMessage = finalPromptTokens > 9000;
 
   console.log("(Calculated) Tokens: " + finalPromptTokens);
@@ -84,8 +83,7 @@ export async function POST(req: Request) {
     const text = result.value;
 
     try {
-      const { summary, isLargeMessage, tokenCount } =
-        await getPatientSummaryReport(text, userPrompt);
+      const summary = await getPatientSummaryReport(text, userPrompt);
       const splitSummary = splitMarkdownByHeadings(summary);
       return Response.json({ data: splitSummary });
     } catch (e) {
