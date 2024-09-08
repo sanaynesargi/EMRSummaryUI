@@ -20,10 +20,19 @@ export interface RecordStoreTable {
   created_at: ColumnType<Date, string | undefined, never>;
 }
 
+export interface ClientSummaryPersistedStore {
+  id: Generated<number>;
+  patient_id: number;
+  hash: string;
+  summary: string;
+  created_at: ColumnType<Date, string | undefined, never>;
+}
+
 // The overall database interface that includes all the tables
 export interface Database {
   clients: ClientsTable;
   record_store: RecordStoreTable;
+  clientpersistense: ClientSummaryPersistedStore;
 }
 
 // Export different types to isolate functionality
@@ -34,3 +43,7 @@ export type ClientUpdate = Updateable<ClientsTable>;
 export type Record = Selectable<RecordStoreTable>;
 export type NewRecord = Insertable<RecordStoreTable>;
 export type RecordUpdate = Updateable<RecordStoreTable>;
+
+export type ClientStore = Selectable<ClientSummaryPersistedStore>;
+export type NewClientStore = Insertable<ClientSummaryPersistedStore>;
+export type ClientStoreUpdate = Updateable<ClientSummaryPersistedStore>;

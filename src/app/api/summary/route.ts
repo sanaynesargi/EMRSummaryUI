@@ -7,6 +7,7 @@ import { getGPTResponse } from "../../../../utils/getGPTResponse";
 import { getClaudeResponse } from "../../../../utils/getClaudeResponse";
 import { splitMarkdownByHeadings } from "../../../../utils/splitMarkdownByHeadings";
 import { countTokens } from "@anthropic-ai/tokenizer";
+import { md5 } from "js-md5";
 
 const getPatientSummaryReport = async (
   patientDataBlob: string,
@@ -83,15 +84,58 @@ export async function POST(req: Request) {
     const result = await mammoth.extractRawText({ buffer });
     const text = result.value;
 
+    // generate summary hash
+    const hash = md5(text);
+
+    console.log("YAY");
+    // check if hash stored in persistense db
+    const cachedSummaryResult = await db
+      .selectFrom("clientpersistense")
+      .select("clientpersistense.summary")
+      .where("clientpersistense.hash", "=", hash)
+      .executeTakeFirst();
+
+    const cachedSummary = cachedSummaryResult?.summary;
+
     try {
-      const { isLargeMessage, summary, tokenCount } =
-        await getPatientSummaryReport(text, userPrompt);
+      let isLargeMessage: boolean;
+      let dbCached: boolean;
+      let summary: string;
+      let tokenCount: number;
+
+      if (!cachedSummary) {
+        const summaryReport = await getPatientSummaryReport(text, userPrompt);
+        isLargeMessage = summaryReport.isLargeMessage;
+        summary = summaryReport.summary;
+        tokenCount = summaryReport.tokenCount;
+        dbCached = false;
+      } else {
+        isLargeMessage = false;
+        dbCached = true;
+        tokenCount = 0;
+        summary = cachedSummary;
+      }
+
       const splitSummary = splitMarkdownByHeadings(summary);
 
-      console.log(summary);
+      if (!cachedSummary) {
+        // cache the summary in the database
+        const result = await db
+          .insertInto("clientpersistense")
+          .values({ hash, summary, patient_id: clientId })
+          .returning(["clientpersistense.hash"])
+          .executeTakeFirst();
+
+        console.log(
+          `Cached Patient Id: ${clientId} into DB row hash: ${result.hash}\n`
+        );
+      } else {
+        console.log(`Retreied Patient Id: ${clientId} from DB cache`);
+      }
+
       return Response.json({
         data: splitSummary,
-        model: !isLargeMessage ? "Haiku" : "Sonnet",
+        model: dbCached ? "Cached DB" : !isLargeMessage ? "Haiku" : "Sonnet",
         tokenCount,
       });
     } catch (e) {

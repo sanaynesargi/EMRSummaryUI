@@ -321,7 +321,7 @@ export default function Home() {
                         setFilteredTags([]);
                         return;
                       }
-                      alert(JSON.stringify(summaryResponse));
+
                       toast({
                         title: `Patient Summary Retreived (${summaryResponse.model})`,
                         description: `Prompt Token Count: ${summaryResponse.tokenCount}`,
