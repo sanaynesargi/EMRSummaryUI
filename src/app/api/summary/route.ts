@@ -29,7 +29,7 @@ const getPatientSummaryReport = async (
   return { isLargeMessage, summary: AIResp, tokenCount: finalPromptTokens };
 };
 
-export async function POST(req: Request) {
+export async function POST(req: NextRequest) {
   const searchParams = await req.json();
   const clientId = searchParams.clientId;
   const userPrompt = searchParams.workingPrompt; // TODO: REMOVE WHEN FEATURE IS REMOVED (POTENTIAL SECURITY VUNERABILITY)
@@ -85,17 +85,16 @@ export async function POST(req: Request) {
     const text = result.value;
 
     // generate summary hash
-    const hash = md5(text);
+    // const hash = md5(text);
 
-    console.log("YAY");
     // check if hash stored in persistense db
-    const cachedSummaryResult = await db
-      .selectFrom("clientpersistense")
-      .select("clientpersistense.summary")
-      .where("clientpersistense.hash", "=", hash)
-      .executeTakeFirst();
+    // const cachedSummaryResult = await db
+    //   .selectFrom("clientpersistense")
+    //   .select("clientpersistense.summary")
+    //   .where("clientpersistense.hash", "=", hash)
+    //   .executeTakeFirst();
 
-    const cachedSummary = cachedSummaryResult?.summary;
+    const cachedSummary = ""; //cachedSummaryResult?.summary;
 
     try {
       let isLargeMessage: boolean;
@@ -118,20 +117,20 @@ export async function POST(req: Request) {
 
       const splitSummary = splitMarkdownByHeadings(summary);
 
-      if (!cachedSummary) {
-        // cache the summary in the database
-        const result = await db
-          .insertInto("clientpersistense")
-          .values({ hash, summary, patient_id: clientId })
-          .returning(["clientpersistense.hash"])
-          .executeTakeFirst();
+      //   if (!cachedSummary) {
+      //     // cache the summary in the database
+      //     const result = await db
+      //       .insertInto("clientpersistense")
+      //       .values({ hash, summary, patient_id: clientId })
+      //       .returning(["clientpersistense.hash"])
+      //       .executeTakeFirst();
 
-        console.log(
-          `Cached Patient Id: ${clientId} into DB row hash: ${result.hash}\n`
-        );
-      } else {
-        console.log(`Retreied Patient Id: ${clientId} from DB cache`);
-      }
+      //     console.log(
+      //       `Cached Patient Id: ${clientId} into DB row hash: ${result.hash}\n`
+      //     );
+      //   } else {
+      //     console.log(`Retreied Patient Id: ${clientId} from DB cache`);
+      //   }
 
       return Response.json({
         data: splitSummary,
