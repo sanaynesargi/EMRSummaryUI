@@ -139,7 +139,7 @@ export async function POST(req: NextRequest) {
         model: dbCached
           ? "Cached DB"
           : !isLargeMessage
-          ? "Sonnet (<10k)"
+          ? "Haiku (<10k)"
           : "Sonnet (>10k)",
         tokenCount,
       });
