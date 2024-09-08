@@ -322,13 +322,13 @@ export default function Home() {
                         return;
                       }
 
-                      //   toast({
-                      //     title: `Patient Summary Retreived (${summaryResponse.model})`,
-                      //     description: `Prompt Token Count: ${summaryResponse.tokenCount}`,
-                      //     status: "success",
-                      //     duration: 10000,
-                      //     isClosable: true,
-                      //   });
+                      toast({
+                        title: `Patient Summary Retreived (${summaryResponse.model})`,
+                        description: `Prompt Token Count: ${summaryResponse.tokenCount}`,
+                        status: "success",
+                        duration: 10000,
+                        isClosable: true,
+                      });
 
                       // A little messy, but set all states
                       setSummary(summaryResponse.data);

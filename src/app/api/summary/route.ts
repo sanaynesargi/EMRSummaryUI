@@ -6,8 +6,8 @@ import { SUMMARY_PROMPT } from "../../../../utils/workingPrompt";
 import { getGPTResponse } from "../../../../utils/getGPTResponse";
 import { getClaudeResponse } from "../../../../utils/getClaudeResponse";
 import { splitMarkdownByHeadings } from "../../../../utils/splitMarkdownByHeadings";
-import { countTokens } from "@anthropic-ai/tokenizer";
 import { md5 } from "js-md5";
+import { countTokens } from "../../../../utils/countTokens";
 
 const getPatientSummaryReport = async (
   patientDataBlob: string,
@@ -18,8 +18,8 @@ const getPatientSummaryReport = async (
 
   //   return await getGPTResponse(SUMMARY_PROMPT + " " + userMessage);
   const finalPrompt = addedPrompt + " " + userMessage;
-  const finalPromptTokens = 0; //countTokens(finalPrompt);
-  const isLargeMessage = finalPromptTokens > 9000;
+  const finalPromptTokens = await countTokens(finalPrompt);
+  const isLargeMessage = finalPromptTokens > 10000;
 
   console.log("(Calculated) Tokens: " + finalPromptTokens);
   console.log("isLargeMessage: " + isLargeMessage);
@@ -85,16 +85,16 @@ export async function POST(req: NextRequest) {
     const text = result.value;
 
     // generate summary hash
-    // const hash = md5(text);
+    const hash = md5(text);
 
     // check if hash stored in persistense db
-    // const cachedSummaryResult = await db
-    //   .selectFrom("clientpersistense")
-    //   .select("clientpersistense.summary")
-    //   .where("clientpersistense.hash", "=", hash)
-    //   .executeTakeFirst();
+    const cachedSummaryResult = await db
+      .selectFrom("clientpersistense")
+      .select("clientpersistense.summary")
+      .where("clientpersistense.hash", "=", hash)
+      .executeTakeFirst();
 
-    const cachedSummary = ""; //cachedSummaryResult?.summary;
+    const cachedSummary = cachedSummaryResult?.summary;
 
     try {
       let isLargeMessage: boolean;
@@ -117,20 +117,22 @@ export async function POST(req: NextRequest) {
 
       const splitSummary = splitMarkdownByHeadings(summary);
 
-      //   if (!cachedSummary) {
-      //     // cache the summary in the database
-      //     const result = await db
-      //       .insertInto("clientpersistense")
-      //       .values({ hash, summary, patient_id: clientId })
-      //       .returning(["clientpersistense.hash"])
-      //       .executeTakeFirst();
+      console.log(`Current Hash: ${hash}`);
 
-      //     console.log(
-      //       `Cached Patient Id: ${clientId} into DB row hash: ${result.hash}\n`
-      //     );
-      //   } else {
-      //     console.log(`Retreied Patient Id: ${clientId} from DB cache`);
-      //   }
+      if (!cachedSummary) {
+        // cache the summary in the database
+        const result = await db
+          .insertInto("clientpersistense")
+          .values({ hash, summary, patient_id: clientId })
+          .returning(["clientpersistense.hash"])
+          .executeTakeFirst();
+
+        console.log(
+          `Cached Patient Id: ${clientId} into DB row hash: ${result.hash}\n`
+        );
+      } else {
+        console.log(`Retreied Patient Id: ${clientId} from DB cache`);
+      }
 
       return Response.json({
         data: splitSummary,

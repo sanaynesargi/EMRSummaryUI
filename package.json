@@ -10,7 +10,6 @@
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.26.0",
-    "@anthropic-ai/tokenizer": "^0.0.4",
     "@aws-sdk/client-s3": "^3.629.0",
     "@aws-sdk/s3-request-presigner": "^3.629.0",
     "@chakra-ui/icons": "^2.1.1",
@@ -21,6 +20,7 @@
     "@vercel/kv": "^2.0.0",
     "@vercel/postgres": "^0.9.0",
     "@vercel/postgres-kysely": "^0.9.0",
+    "@xenova/transformers": "^2.17.2",
     "aws-sdk": "^2.1674.0",
     "axios": "^1.7.4",
     "chakra-dayzed-datepicker": "^0.3.0",
