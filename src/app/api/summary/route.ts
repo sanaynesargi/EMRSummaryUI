@@ -136,7 +136,11 @@ export async function POST(req: NextRequest) {
 
       return Response.json({
         data: splitSummary,
-        model: dbCached ? "Cached DB" : !isLargeMessage ? "Haiku" : "Sonnet",
+        model: dbCached
+          ? "Cached DB"
+          : !isLargeMessage
+          ? "Sonnet (<10k)"
+          : "Sonnet (>10k)",
         tokenCount,
       });
     } catch (e) {
