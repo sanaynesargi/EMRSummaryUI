@@ -266,6 +266,14 @@ export default function Home() {
                       }
 
                       if (cachedMarkdown) {
+                        toast({
+                          title: `Patient Summary Retreived (Cached Redis)`,
+                          description: `Summary pulled from cache!`,
+                          status: "success",
+                          duration: 10000,
+                          isClosable: true,
+                        });
+
                         const sections =
                           splitMarkdownByHeadings(cachedMarkdown);
 
@@ -313,6 +321,14 @@ export default function Home() {
                         setFilteredTags([]);
                         return;
                       }
+                      alert(JSON.stringify(summaryResponse));
+                      toast({
+                        title: `Patient Summary Retreived (${summaryResponse.model})`,
+                        description: `Prompt Token Count: ${summaryResponse.tokenCount}`,
+                        status: "success",
+                        duration: 10000,
+                        isClosable: true,
+                      });
 
                       // A little messy, but set all states
                       setSummary(summaryResponse.data);
