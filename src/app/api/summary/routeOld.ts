@@ -6,6 +6,8 @@ import { SUMMARY_PROMPT } from "../../../../utils/workingPrompt";
 import { getGPTResponse } from "../../../../utils/getGPTResponse";
 import { getClaudeResponse } from "../../../../utils/getClaudeResponse";
 import { splitMarkdownByHeadings } from "../../../../utils/splitMarkdownByHeadings";
+import { countTokens } from "@anthropic-ai/tokenizer";
+import { md5 } from "js-md5";
 
 const getPatientSummaryReport = async (
   patientDataBlob: string,
@@ -15,12 +17,19 @@ const getPatientSummaryReport = async (
   const addedPrompt = customPrompt ? customPrompt : SUMMARY_PROMPT;
 
   //   return await getGPTResponse(SUMMARY_PROMPT + " " + userMessage);
-  const AIResp = await getClaudeResponse(addedPrompt + " " + userMessage);
+  const finalPrompt = addedPrompt + " " + userMessage;
+  const finalPromptTokens = countTokens(finalPrompt);
+  const isLargeMessage = finalPromptTokens > 9000;
 
-  return AIResp;
+  console.log("(Calculated) Tokens: " + finalPromptTokens);
+  console.log("isLargeMessage: " + isLargeMessage);
+  console.log("\n\n");
+  const AIResp = await getClaudeResponse(finalPrompt, isLargeMessage);
+
+  return { isLargeMessage, summary: AIResp, tokenCount: finalPromptTokens };
 };
 
-export async function POST(req: Request) {
+export async function POST(req: NextRequest) {
   const searchParams = await req.json();
   const clientId = searchParams.clientId;
   const userPrompt = searchParams.workingPrompt; // TODO: REMOVE WHEN FEATURE IS REMOVED (POTENTIAL SECURITY VUNERABILITY)
@@ -75,10 +84,59 @@ export async function POST(req: Request) {
     const result = await mammoth.extractRawText({ buffer });
     const text = result.value;
 
+    // generate summary hash
+    // const hash = md5(text);
+
+    // check if hash stored in persistense db
+    // const cachedSummaryResult = await db
+    //   .selectFrom("clientpersistense")
+    //   .select("clientpersistense.summary")
+    //   .where("clientpersistense.hash", "=", hash)
+    //   .executeTakeFirst();
+
+    const cachedSummary = ""; //cachedSummaryResult?.summary;
+
     try {
-      const summary = await getPatientSummaryReport(text, userPrompt);
+      let isLargeMessage: boolean;
+      let dbCached: boolean;
+      let summary: string;
+      let tokenCount: number;
+
+      if (!cachedSummary) {
+        const summaryReport = await getPatientSummaryReport(text, userPrompt);
+        isLargeMessage = summaryReport.isLargeMessage;
+        summary = summaryReport.summary;
+        tokenCount = summaryReport.tokenCount;
+        dbCached = false;
+      } else {
+        isLargeMessage = false;
+        dbCached = true;
+        tokenCount = 0;
+        summary = cachedSummary;
+      }
+
       const splitSummary = splitMarkdownByHeadings(summary);
-      return Response.json({ data: splitSummary });
+
+      //   if (!cachedSummary) {
+      //     // cache the summary in the database
+      //     const result = await db
+      //       .insertInto("clientpersistense")
+      //       .values({ hash, summary, patient_id: clientId })
+      //       .returning(["clientpersistense.hash"])
+      //       .executeTakeFirst();
+
+      //     console.log(
+      //       `Cached Patient Id: ${clientId} into DB row hash: ${result.hash}\n`
+      //     );
+      //   } else {
+      //     console.log(`Retreied Patient Id: ${clientId} from DB cache`);
+      //   }
+
+      return Response.json({
+        data: splitSummary,
+        model: dbCached ? "Cached DB" : !isLargeMessage ? "Haiku" : "Sonnet",
+        tokenCount,
+      });
     } catch (e) {
       console.log(e);
       return Response.json({ error: "LLM Retreival Error" });
