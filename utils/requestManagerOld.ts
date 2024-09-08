@@ -5,6 +5,8 @@ const API_BASE_URL = "/api";
 interface APIResponse {
   error: string | null;
   data: any | null;
+  model?: string | null;
+  tokenCount?: number | null;
 }
 
 const getAPIData = async (url: string, params: any) => {
@@ -70,6 +72,7 @@ const postAPIData = async (url: string, body: any) => {
   let retObj: APIResponse = {
     error: null,
     data: responseData.data,
+    ...responseData,
   };
 
   return retObj;
