@@ -83,7 +83,7 @@ export async function POST(req: Request) {
     const text = result.value;
 
     try {
-      const summary = await getPatientSummaryReport(text, userPrompt);
+      const { summary } = await getPatientSummaryReport(text, userPrompt);
       const splitSummary = splitMarkdownByHeadings(summary);
       return Response.json({ data: splitSummary });
     } catch (e) {
