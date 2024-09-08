@@ -24,7 +24,7 @@ const getPatientSummaryReport = async (
   console.log("(Calculated) Tokens: " + finalPromptTokens);
   console.log("isLargeMessage: " + isLargeMessage);
   console.log("\n\n");
-  const AIResp = await getClaudeResponse(finalPrompt, isLargeMessage);
+  const AIResp = await getClaudeResponse(finalPrompt); //isLargeMessage
 
   return { isLargeMessage, summary: AIResp, tokenCount: finalPromptTokens };
 };
